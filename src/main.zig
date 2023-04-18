@@ -1,5 +1,5 @@
 const std = @import("std");
-const Program = @import("Program.zig");
+const BrilJson = @import("BrilJson.zig");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -12,11 +12,12 @@ pub fn main() !void {
     const contents = try std.fs.cwd().readFileAlloc(allocator, file, 0xFFFFFFFF);
     defer allocator.free(contents);
     var tokens = std.json.TokenStream.init(contents);
-    const program = try std.json.parse(Program, &tokens, .{ .allocator = allocator });
-    defer std.json.parseFree(Program, program, .{ .allocator = allocator });
+    const bril = try std.json.parse(BrilJson, &tokens, .{ .allocator = allocator });
+    defer std.json.parseFree(BrilJson, bril, .{ .allocator = allocator });
+    var basic_blocks = bril.toBril(allocator);
+    defer basic_blocks.deinit();
 }
 
 test "static analysis" {
-    _ = @import("Program.zig");
     std.testing.refAllDeclsRecursive(@This());
 }
